@@ -13,3 +13,7 @@ Windows OS users can enable WSL functionality and review the following guides
 All tools we will be using in the scope of this project are available via the Bioconda channel. 
 Working with Conda for bioinformatics will allow you to easily install packages and resolve dependency conflicts. 
 Please review the [BIOCONDA](https://bioconda.github.io/) channel for more information.
+
+The human reference genome in a fasta format from the UCSC Genome Browser ( UCSC ):
+
+curl -O http://hgdownload.cse.ucsc.edu/goldenPath/hg38/bigZips/hg38.fa.gz
