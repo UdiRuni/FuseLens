@@ -17,3 +17,14 @@ Please review the [BIOCONDA](https://bioconda.github.io/) channel for more infor
 The human reference genome in a fasta format from the UCSC Genome Browser ( UCSC ):
 
 curl -O http://hgdownload.cse.ucsc.edu/goldenPath/hg38/bigZips/hg38.fa.gz
+
+Tools to be used: 
+
+[Samtools](https://www.htslib.org/)
+
+[BWA](https://bio-bwa.sourceforge.net/)
+
+Create a new conda environment:
+
+_conda create -c conda-forge -c bioconda -n read_alignment samtools awscli bwa -y
+conda activate read_alignment_
