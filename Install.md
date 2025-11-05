@@ -27,8 +27,8 @@ Tools to be used:
 Create a new conda environment:
 
 ```python
-_conda create -c conda-forge -c bioconda -n read_alignment samtools awscli bwa -y
-conda activate read_alignment_
+conda create -c conda-forge -c bioconda -n read_alignment samtools awscli bwa -y
+conda activate read_alignment
 ```
 To perform sequencing alignment for the data we have first start by creating the index files for the bwa mem algorthim that we will use for mapping and alignment. 
 Using the below command on the hg38.fa genome:
