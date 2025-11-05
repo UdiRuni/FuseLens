@@ -2,7 +2,7 @@ Bioinformatics software and data management are facilitated mostly using the Lin
 OS. You would need to make sure you have access to a UNIX based operating system, i.e., Linux, MacOS, FreeBSD, with a
 strong preference to a Linux based distribution. 
 
-Windows OS users are can enable WSL functionality and review the following guides
+Windows OS users can enable WSL functionality and review the following guides
 
 [What is the Windows Subsystem for Linux?](https://learn.microsoft.com/en-us/windows/wsl/about)
 [How to install Linux on Windows with WSL](https://learn.microsoft.com/en-us/windows/wsl/install)
