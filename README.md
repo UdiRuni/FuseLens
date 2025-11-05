@@ -23,3 +23,6 @@ Data Curation: Generate labels (True/False Positives) by comparing RNA-Seq fusio
 Input Preparation: For each fusion, extract the raw DNA sequence surrounding the breakpoint from a reference genome (e.g., using pyfaidx).
 Model Fine-Tuning: Load a pre-trained genomic Model and fine-tune it for sequence classification using the labeled breakpoint sequences.
 Interpretation: Analyze the model's attention scores to identify predictive nucleotide patterns using tools like bertviz.
+
+<img width="1967" height="1069" alt="image" src="https://github.com/user-attachments/assets/7b912c35-5386-4c0c-979f-8d6874716fbe" />
+
