@@ -33,3 +33,19 @@ To perform sequencing alignment for the data we have first start by creating the
 Using the below command on the hg38.fa genome:
 
 _bwa index hg38.fa_
+
+Or download the index files from a publicly open AWS s3 bucket:
+
+This is the hg38.fa (no need to re-download if you already have it, just rename)
+aws s3 --no-sign-request --region eu-west-1 cp s3://ngi-igenomes/igenomes/Homo_sapiens/UCSC/hg38/Sequence/BWAIndex/genome.fa .
+
+These are the index files
+aws s3 --no-sign-request --region eu-west-1 cp s3://ngi-igenomes/igenomes/Homo_sapiens/UCSC/hg38/Sequence/BWAIndex/genome.fa.amb .
+aws s3 --no-sign-request --region eu-west-1 cp s3://ngi-igenomes/igenomes/Homo_sapiens/UCSC/hg38/Sequence/BWAIndex/genome.fa.ann .
+aws s3 --no-sign-request --region eu-west-1 cp s3://ngi-igenomes/igenomes/Homo_sapiens/UCSC/hg38/Sequence/BWAIndex/genome.fa.bwt .
+aws s3 --no-sign-request --region eu-west-1 cp s3://ngi-igenomes/igenomes/Homo_sapiens/UCSC/hg38/Sequence/BWAIndex/genome.fa.pac .
+aws s3 --no-sign-request --region eu-west-1 cp s3://ngi-igenomes/igenomes/Homo_sapiens/UCSC/hg38/Sequence/BWAIndex/genome.fa.sa .
+
+The below command will align the RNA Seq samples given all files are present in the current working directory:
+
+samtools index -@ 8 AD0699_18N.bam
