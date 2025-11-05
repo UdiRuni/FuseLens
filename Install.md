@@ -15,9 +15,9 @@ Working with Conda for bioinformatics will allow you to easily install packages 
 Please review the [BIOCONDA](https://bioconda.github.io/) channel for more information.
 
 The human reference genome in a fasta format from the UCSC Genome Browser ( UCSC ):
-
+```
 curl -O http://hgdownload.cse.ucsc.edu/goldenPath/hg38/bigZips/hg38.fa.gz
-
+```
 Tools to be used: 
 
 [Samtools](https://www.htslib.org/)
@@ -26,26 +26,31 @@ Tools to be used:
 
 Create a new conda environment:
 
+```python
 _conda create -c conda-forge -c bioconda -n read_alignment samtools awscli bwa -y
 conda activate read_alignment_
-
+```
 To perform sequencing alignment for the data we have first start by creating the index files for the bwa mem algorthim that we will use for mapping and alignment. 
 Using the below command on the hg38.fa genome:
-
-_bwa index hg38.fa_
-
+```python
+__bwa index hg38.fa___
+```
 Or download the index files from a publicly open AWS s3 bucket:
 
 This is the hg38.fa (no need to re-download if you already have it, just rename)
+```python
 aws s3 --no-sign-request --region eu-west-1 cp s3://ngi-igenomes/igenomes/Homo_sapiens/UCSC/hg38/Sequence/BWAIndex/genome.fa .
-
+```
 These are the index files
+```python
 aws s3 --no-sign-request --region eu-west-1 cp s3://ngi-igenomes/igenomes/Homo_sapiens/UCSC/hg38/Sequence/BWAIndex/genome.fa.amb .
 aws s3 --no-sign-request --region eu-west-1 cp s3://ngi-igenomes/igenomes/Homo_sapiens/UCSC/hg38/Sequence/BWAIndex/genome.fa.ann .
 aws s3 --no-sign-request --region eu-west-1 cp s3://ngi-igenomes/igenomes/Homo_sapiens/UCSC/hg38/Sequence/BWAIndex/genome.fa.bwt .
 aws s3 --no-sign-request --region eu-west-1 cp s3://ngi-igenomes/igenomes/Homo_sapiens/UCSC/hg38/Sequence/BWAIndex/genome.fa.pac .
 aws s3 --no-sign-request --region eu-west-1 cp s3://ngi-igenomes/igenomes/Homo_sapiens/UCSC/hg38/Sequence/BWAIndex/genome.fa.sa .
-
+```
 The below command will align the RNA Seq samples given all files are present in the current working directory:
 
+```python
 samtools index -@ 8 AD0699_18N.bam
+```
