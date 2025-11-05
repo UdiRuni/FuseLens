@@ -33,7 +33,7 @@ conda activate read_alignment_
 To perform sequencing alignment for the data we have first start by creating the index files for the bwa mem algorthim that we will use for mapping and alignment. 
 Using the below command on the hg38.fa genome:
 ```python
-__bwa index hg38.fa___
+bwa index hg38.fa
 ```
 Or download the index files from a publicly open AWS s3 bucket:
 
