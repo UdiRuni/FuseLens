@@ -5,7 +5,9 @@ strong preference to a Linux based distribution.
 Windows OS users can enable WSL functionality and review the following guides
 
 [What is the Windows Subsystem for Linux?](https://learn.microsoft.com/en-us/windows/wsl/about)
+
 [How to install Linux on Windows with WSL](https://learn.microsoft.com/en-us/windows/wsl/install)
+
 [Set up a WSL development environment](https://learn.microsoft.com/en-us/windows/wsl/setup/environment)
 
 We recommend installing Anaconda as your environment package manager as most
