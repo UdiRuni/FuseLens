@@ -1,5 +1,4 @@
-# FuseLens
-The Fusion Transcripts Booster 
+# FuseLens - The Fusion Transcripts Booster 
 
 ### Goal: 
 Develop a deep learning system for high-accuracy prioritization of cancer-associated fusion transcripts by interpreting their underlying sequence "language." 
@@ -23,4 +22,3 @@ Data Curation: Generate labels (True/False Positives) by comparing RNA-Seq fusio
 Input Preparation: For each fusion, extract the raw DNA sequence surrounding the breakpoint from a reference genome (e.g., using pyfaidx).
 Model Fine-Tuning: Load a pre-trained genomic Model and fine-tune it for sequence classification using the labeled breakpoint sequences.
 Interpretation: Analyze the model's attention scores to identify predictive nucleotide patterns using tools like bertviz.
-
