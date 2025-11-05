@@ -3,7 +3,7 @@
 ### Goal: 
 Develop a deep learning system for high-accuracy prioritization of cancer-associated fusion transcripts by interpreting their underlying sequence "language." 
 ### Key Features: 
-Fine-tune a pre-trained model – DeepVariant to classify the nucleotide sequences surrounding a fusion breakpoints.
+Fine-tune a pre-trained model – DeepVariant (https://github.com/google/deepvariant) to classify the nucleotide sequences surrounding a fusion breakpoints.
 ### Impact: 
 Accelerated Discovery -  automates the prioritization of high-impact driver fusions from thousands of candidates, speeding up the discovery of novel cancer biomarkers and therapeutic targets. 
 ### Keywords: 
