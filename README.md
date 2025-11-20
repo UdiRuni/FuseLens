@@ -1,9 +1,9 @@
 # FuseLens - The Fusion Transcripts Booster 
 
 ### Goal: 
-Develop a deep learning system for high-accuracy prioritization of cancer-associated fusion transcripts by interpreting their underlying sequence "language." 
+Develop a deep learning system for high-accuracy prioritization of fusion transcripts by interpreting their underlying sequence "language." 
 ### Key Features: 
-Fine-tune a pre-trained DNN model – DeepVariant (https://github.com/google/deepvariant) to classify the nucleotide sequences surrounding a fusion breakpoints as images. 
+Fine-tune a pre-trained LMM model – HyenaDNA ([https://github.com/google/deepvariant](https://arxiv.org/abs/2306.15794)) to classify the nucleotide sequences surrounding a fusion breakpoints as images. 
 Use the model as classfier for new fusion transcripts false/true-postive predication with higher accuracy and compare with other tools (i.e.Arriba, FusionScan, and GFusion, which are algorithms designed to analyze RNA sequencing data to identify split reads and other evidence of fusion transcripts).
 ### Impact: 
 Accelerated Science Discovery -  automates the prioritization of high-impact driver fusions from thousands of candidates, speeding up the discovery of novel cancer biomarkers and therapeutic targets. 
@@ -23,6 +23,10 @@ Data Curation: Generate labels (True/False Positives) by comparing RNA-Seq fusio
 Input Preparation: For each fusion, extract the raw DNA sequence surrounding the breakpoint from a reference genome (e.g., using pyfaidx).
 Model Fine-Tuning: Load a pre-trained genomic Model and fine-tune it for sequence classification using the labeled breakpoint sequences.
 Interpretation: Analyze the model's attention scores to identify predictive nucleotide patterns using tools like bertviz.
+
+
+More options to consider:
+ DeepVariant (https://github.com/google/deepvariant) to classify the nucleotide sequences surrounding a fusion breakpoints as images. 
 
 <img width="1967" height="1069" alt="image" src="https://github.com/user-attachments/assets/7b912c35-5386-4c0c-979f-8d6874716fbe" />
 
