@@ -1,10 +1,10 @@
-# 🧬 FuseLens: Long-Context Genomic Foundation Models for DNA Breakpoint Detection
+# FuseLens: Long-Context Genomic Foundation Models for DNA Breakpoint Detection
 
 **FuseLens** is a deep learning framework designed to detect and validate gene fusion breakpoints with high precision. By leveraging **HyenaDNA**—a genomic foundation model capable of processing long context windows (20kb)—FuseLens overcomes the limitations of traditional short-read alignment tools in identifying complex or repetitive fusion events.
 
 ---
 
-## 🚀 Key Features
+## Key Features
 
 * **Foundation Model Backbone:** Uses `hyenadna-small-32k` to process 20kb genomic windows at single-nucleotide resolution.
 * **Attention Pooling Head:** A custom learnable pooling layer that localizes the exact breakpoint signal within the massive 20kb context.
@@ -13,7 +13,7 @@
 
 ---
 
-## 🧠 Methodology
+## Methodology
 
 ### 1. Model Architecture
 Instead of standard CNNs or quadratic Transformers, we utilized **HyenaDNA**, which uses implicit long convolutions to scale sub-quadratically ($O(N \log N)$).
@@ -33,7 +33,7 @@ To prevent the model from learning simple shortcuts (like GC-content bias), we e
 
 ---
 
-## 🛠️ The Pipeline
+## The Pipeline
 
 ### Phase 1: Discovery (Long-Read)
 We use **CTAT-LR-fusion** to parse raw Oxford Nanopore (ONT) or PacBio FASTQ files.
@@ -52,7 +52,7 @@ The extracted sequences are fed into the fine-tuned FuseLens model.
 
 ---
 
-## 📊 Performance Benchmark
+## Performance Benchmark
 
 Evaluated on a hold-out test set of 21,952 samples:
 
@@ -65,7 +65,7 @@ Evaluated on a hold-out test set of 21,952 samples:
 
 ---
 
-## 📂 Repository Structure
+## Repository Structure
 
 * `HyenaDNA_Breakpoint_Classifier.ipynb`: **Training Pipeline.** Data loading, augmentation, model fine-tuning, and evaluation.
 * `FuseLens_Inference_Pipeline.ipynb`: **Deployment Pipeline.** End-to-end workflow from FASTQ $\to$ Clinical Report.
@@ -74,6 +74,6 @@ Evaluated on a hold-out test set of 21,952 samples:
 
 ---
 
-## 🔮 Future Directions
+## Future Directions
 * **Variant Effect Prediction:** Repurposing the backbone to score SNP pathogenicity.
 * **Multi-Class Segmentation:** Upgrading the model to distinguish between *cis-splicing* (benign) and *translocations* (cancerous).
