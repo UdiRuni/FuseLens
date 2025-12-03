@@ -16,7 +16,7 @@
 ## Methodology
 
 ### 1. Model Architecture
-Instead of standard CNNs or quadratic Transformers, we utilized **HyenaDNA**, which uses implicit long convolutions to scale sub-quadratically $O(N \log N)$.
+Instead of standard CNNs or quadratic Transformers, we utilized HyenaDNA. This architecture employs implicit long convolutions to scale sub-quadratically at $O(N \log N)$.
 * **Input:** 20,480 bp genomic sequence (centered on candidate breakpoint).
 * **Backbone:** Pretrained Hyena operators (feature extraction).
 * **Head:** **Attention Pooling**. Instead of max-pooling, the model calculates an attention score $\alpha_t$ for every nucleotide, allowing it to "focus" on the junction and ignore flanking noise.
