@@ -1,32 +1,79 @@
-# FuseLens - The Fusion Transcripts Booster 
+# 🧬 FuseLens: Long-Context Genomic Foundation Models for DNA Breakpoint Detection
 
-### Goal: 
-Develop a deep learning system for high-accuracy prioritization of fusion transcripts by interpreting their underlying sequence "language." 
-### Key Features: 
-Fine-tune a pre-trained LMM model – HyenaDNA ([https://github.com/google/deepvariant](https://arxiv.org/abs/2306.15794)) to classify the nucleotide sequences surrounding a fusion breakpoints as images. 
-Use the model as classfier for new fusion transcripts false/true-postive predication with higher accuracy and compare with other tools (i.e.Arriba, FusionScan, and GFusion, which are algorithms designed to analyze RNA sequencing data to identify split reads and other evidence of fusion transcripts).
-### Impact: 
-Accelerated Science Discovery -  automates the prioritization of high-impact driver fusions from thousands of candidates, speeding up the discovery of novel cancer biomarkers and therapeutic targets. 
-### Keywords: 
-Fusion Transcript, Chimeric RNA, DNN, Genomic Language Model, Computer Graphics, GenAI, Sequence Classification, Attention Mechanism, Bioinformatics, Cancer Genomics.
-### Data Sources: 
-The Cancer Genome Atlas (TCGA): Source for tumor RNA-Seq and matched Whole-Genome Sequencing (WGS) data to generate ground truth labels.
-COSMIC & ChimerDB: A "gold-standard" set of positive examples.
-GTEx Portal: Source of normal tissue RNA-Seq data to identify and filter out benign read-through events.
-### Expected challenges: 
-Data Scarcity & Quality: Obtaining a large, high-quality labeled dataset is a bottleneck. Creating ground truth labels is a non-trivial task.
-Computational Cost: Fine-tuning large models requires significant GPU resources and time.
-Model Interpretability: Translating scores into verifiable hypotheses is a complex and active area of research.
-Generalization: The model may not generalize well across different cancer types or sequencing technologies (e.g., short-read vs. long-read) without specific training strategies.
-### Tentative methods:
-Data Curation: Generate labels (True/False Positives) by comparing RNA-Seq fusion calls with matched WGS data from TCGA
-Input Preparation: For each fusion, extract the raw DNA sequence surrounding the breakpoint from a reference genome (e.g., using pyfaidx).
-Model Fine-Tuning: Load a pre-trained genomic Model and fine-tune it for sequence classification using the labeled breakpoint sequences.
-Interpretation: Analyze the model's attention scores to identify predictive nucleotide patterns using tools like bertviz.
+**FuseLens** is a deep learning framework designed to detect and validate gene fusion breakpoints with high precision. By leveraging **HyenaDNA**—a genomic foundation model capable of processing long context windows (20kb)—FuseLens overcomes the limitations of traditional short-read alignment tools in identifying complex or repetitive fusion events.
 
+---
 
-More options to consider:
- DeepVariant (https://github.com/google/deepvariant) to classify the nucleotide sequences surrounding a fusion breakpoints as images. 
+## 🚀 Key Features
 
-<img width="1967" height="1069" alt="image" src="https://github.com/user-attachments/assets/7b912c35-5386-4c0c-979f-8d6874716fbe" />
+* **Foundation Model Backbone:** Uses `hyenadna-small-32k` to process 20kb genomic windows at single-nucleotide resolution.
+* **Attention Pooling Head:** A custom learnable pooling layer that localizes the exact breakpoint signal within the massive 20kb context.
+* **Hybrid Clinical Pipeline:** Integrates with **CTAT-LR-fusion** (Nanopore/PacBio) to act as a high-precision validation layer for long-read discovery.
+* **Robust Data Engineering:** Implements a mathematically rigorous "Hard Negative" strategy to eliminate false positives.
 
+---
+
+## 🧠 Methodology
+
+### 1. Model Architecture
+Instead of standard CNNs or quadratic Transformers, we utilized **HyenaDNA**, which uses implicit long convolutions to scale sub-quadratically ($O(N \log N)$).
+* **Input:** 20,480 bp genomic sequence (centered on candidate breakpoint).
+* **Backbone:** Pretrained Hyena operators (feature extraction).
+* **Head:** **Attention Pooling**. Instead of max-pooling, the model calculates an attention score $\alpha_t$ for every nucleotide, allowing it to "focus" on the junction and ignore flanking noise.
+* **Localization:** The model outputs both a binary classification probability and a specific **Breakpoint Index** derived from the peak attention weight.
+
+### 2. Data Engineering (Hard-Negative Strategy)
+To prevent the model from learning simple shortcuts (like GC-content bias), we engineered a robust training dataset ($N \approx 27,000$):
+* **Canonical Baseline:** 5,000 real human transcripts (UniProt Swiss-Prot) labeled as Negative (0).
+* **Synthetic Hard Negatives:**
+    * **Reversed ($\mathcal{R}$):** Tests directionality.
+    * **Shuffled ($\mathcal{P}_{rand}$):** Preserves GC-content but destroys syntax (Tests motif learning).
+    * **Random Pairs ($\mathcal{J}$):** Randomly joined genes (Tests structural validity).
+* **Domain Adaptation:** We used **Regularized Empirical Risk Minimization (R-ERM)** by mixing synthetic data with real RNA-Seq reads to bridge the "sim-to-real" gap.
+
+---
+
+## 🛠️ The Pipeline
+
+### Phase 1: Discovery (Long-Read)
+We use **CTAT-LR-fusion** to parse raw Oxford Nanopore (ONT) or PacBio FASTQ files.
+* **Role:** Candidate Generator.
+* **Method:** Uses `minimap2` to find reads mapping to two different genes.
+* **Output:** List of candidate fusions with *approximate* coordinates.
+
+### Phase 2: Bridging (Context Extraction)
+A custom Python script takes CTAT candidates and fetches the clean **$\pm$10kb genomic context** from the reference genome (`hg38`).
+* **Why?** Nanopore reads have high error rates (5-10%). Extracting the reference context ensures the model sees clean motifs while verifying the structural arrangement found by the long read.
+
+### Phase 3: Validation (FuseLens)
+The extracted sequences are fed into the fine-tuned FuseLens model.
+* **Classification:** Assigns a probability score ($P > 0.9$ = High Confidence).
+* **Refinement:** The attention mechanism corrects the approximate CTAT coordinate to the precise biological breakpoint.
+
+---
+
+## 📊 Performance Benchmark
+
+Evaluated on a hold-out test set of 21,952 samples:
+
+| Metric | Score | Interpretation |
+| :--- | :--- | :--- |
+| **AUC** | **0.9805** | Near-perfect discrimination capability. |
+| **Recall** | **95.88%** | Captures ~96% of true fusions (Crucial for diagnosis). |
+| **Precision** | **94.83%** | Very low False Alarm rate (5.2%). |
+| **F1 Score** | **0.9535** | Excellent balance between sensitivity and specificity. |
+
+---
+
+## 📂 Repository Structure
+
+* `HyenaDNA_Breakpoint_Classifier.ipynb`: **Training Pipeline.** Data loading, augmentation, model fine-tuning, and evaluation.
+* `FuseLens_Inference_Pipeline.ipynb`: **Deployment Pipeline.** End-to-end workflow from FASTQ $\to$ Clinical Report.
+* `data_pipeline.py`: Scripts for generating synthetic hard negatives from UniProt.
+* `hyenadna_breakpoint_model/`: Directory containing the saved model weights (`model.safetensors`) and tokenizer.
+
+---
+
+## 🔮 Future Directions
+* **Variant Effect Prediction:** Repurposing the backbone to score SNP pathogenicity.
+* **Multi-Class Segmentation:** Upgrading the model to distinguish between *cis-splicing* (benign) and *translocations* (cancerous).
