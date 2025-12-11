@@ -67,7 +67,7 @@ Evaluated on a hold-out test set of 21,952 samples:
 
 ## Repository Structure
 
-* `HyenaDNA_Breakpoint_Classifier.ipynb`: **Training Pipeline.** Data loading, augmentation, model fine-tuning, and evaluation.
+* `FuseLens_Training_Pipeline.ipynb`: **Training Pipeline.** Data loading, augmentation, model fine-tuning, and evaluation.
 * `FuseLens_Inference_Pipeline.ipynb`: **Deployment Pipeline.** End-to-end workflow from FASTQ $\to$ Clinical Report.
 * `data_pipeline.py`: Scripts for generating synthetic hard negatives from UniProt.
 * `hyenadna_breakpoint_model/`: Directory containing the saved model weights (`model.safetensors`) and tokenizer.
