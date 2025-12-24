@@ -6,7 +6,7 @@
 
 ## Key Features
 
-* **Foundation Model Backbone:** Uses `hyenadna-small-32k` to process 20kb genomic windows at single-nucleotide resolution.
+* **Foundation Model Backbone:** Uses `hyenadna-small-32k` to process 32kb genomic windows at single-nucleotide resolution.
 * **Attention Pooling Head:** A custom learnable pooling layer that localizes the exact breakpoint signal within the massive 20kb context.
 * **Hybrid Clinical Pipeline:** Integrates with **CTAT-LR-fusion** (Nanopore/PacBio) to act as a high-precision validation layer for long-read discovery.
 * **Robust Data Engineering:** Implements a mathematically rigorous "Hard Negative" strategy to eliminate false positives.
