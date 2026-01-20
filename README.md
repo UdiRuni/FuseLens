@@ -24,7 +24,7 @@ Instead of standard CNNs or quadratic Transformers, we utilize HyenaDNA, which e
 * **Output:** A fusion probability score $\hat{p}$ and a **Localization Proxy** $\hat{\ell}$ (derived from peak attention), reported only under high confidence ($\tau=0.9$).
 
 ### 2. Data Engineering (Hard-Negative Strategy)
-To prevent the model from learning simple shortcuts (like GC-content bias or protein-coding syntax), we engineered a robust dataset ($N = 253,925$):
+To prevent the model from learning simple shortcuts (like GC-content bias or protein-coding syntax), we engineered a robust dataset:
 
 * **Canonical Baseline:** Real human **Coding DNA Sequences (CDS)** from Ensembl (mapped from UniProt) labeled as Negative (0).
 * **Synthetic Hard Negatives:**
