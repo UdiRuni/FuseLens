@@ -2,6 +2,8 @@
 
 **FuseLens** is a deep learning framework designed to detect and validate gene fusion breakpoints with high discriminative precision. By fine-tuning **HyenaDNA**—a genomic foundation model capable of processing sub-quadratic long context windows—FuseLens overcomes the limitations of traditional short-read alignment tools in identifying complex or repetitive fusion events.
 
+Review Article for the most up top date content.
+
 ---
 
 ## Key Features
@@ -57,10 +59,10 @@ Evaluated on a stratified blind test set of **38,089 samples**:
 
 | Metric | Score | Interpretation |
 | :--- | :--- | :--- |
-| **AUC** | **0.9794** | Exceptional ranking capability; clearly separates fusions from hard decoys. |
-| **Accuracy** | **93.07%** | High reliability across balanced positive and negative classes. |
-| **Precision** | **90.83%** | Minimizes False Positives, a critical requirement for clinical pipelines. |
-| **Recall** | **90.40%** | Captures the vast majority of true pathogenic events. |
+| **AUC** | **0.9736** | Exceptional ranking capability; clearly separates fusions from hard decoys. |
+| **Accuracy** | **91.62%** | High reliability across balanced positive and negative classes. |
+| **Precision** | **92.05%** | Minimizes False Positives, a critical requirement for clinical pipelines. |
+| **Recall** | **91.01%** | Captures the vast majority of true pathogenic events. |
 
 ---
 
