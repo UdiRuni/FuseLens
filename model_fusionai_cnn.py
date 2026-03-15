@@ -1,50 +1,69 @@
+# ==============================================================================
+# BASELINE EXPERIMENT: FUSION-AI (1D CNN ResNet Surrogate)
+# Run this AFTER Cell 5 (Data Loading) in your main script.
+# ==============================================================================
 import os
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import pandas as pd
-import random
 from torch.utils.data import Dataset, DataLoader
-from sklearn.metrics import accuracy_score, roc_auc_score
+from torch.optim import AdamW
+from sklearn.metrics import accuracy_score, roc_auc_score, f1_score, matthews_corrcoef
 from tqdm.auto import tqdm
 
-# ==============================================================================
-# 1. CONFIGURATION
-# ==============================================================================
-class Config:
-    MAX_LEN = 32768
-    BATCH_SIZE = 32      # CNNs are memory efficient; we can use a large batch
-    EPOCHS = 3
-    LR = 1e-4
-    OUTPUT_DIR = "./checkpoints_fusionai_baseline"
-    DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+print("\n" + "="*50)
+print("🚀 STARTING BASELINE: FUSION-AI CNN SURROGATE")
+print("="*50)
 
-os.makedirs(Config.OUTPUT_DIR, exist_ok=True)
+# --- 1. FAST INTEGER ENCODER DATASET (For CNNs) ---
+# CNNs do not use HuggingFace Tokenizers; they use simple integer encoding (A=0, C=1, G=2, T=3, N=4)
+class SimpleDNADataset(Dataset):
+    def __init__(self, sequences, labels, max_len):
+        self.sequences = sequences
+        self.labels = labels
+        self.max_len = max_len
+        # Mapping standard DNA chars to integers
+        self.char_to_int = {'A': 0, 'C': 1, 'G': 2, 'T': 3, 'N': 4}
 
-# ==============================================================================
-# 2. ARCHITECTURE: FUSION-AI (1D CNN ResNet Surrogate)
-# ==============================================================================
+    def __len__(self):
+        return len(self.sequences)
+
+    def __getitem__(self, idx):
+        seq = str(self.sequences[idx]).upper()
+        # Ensure exact length (padding or truncating)
+        if len(seq) < self.max_len:
+            seq += 'N' * (self.max_len - len(seq))
+        else:
+            seq = seq[:self.max_len]
+            
+        # Convert string to integer tensor
+        encoded = [self.char_to_int.get(char, 4) for char in seq]
+        
+        return {
+            'input_ids': torch.tensor(encoded, dtype=torch.long),
+            'labels': torch.tensor(self.labels[idx], dtype=torch.long)
+        }
+
+# --- 2. ARCHITECTURE DEFINITION ---
 class GenomicResBlock(nn.Module):
     """A standard 1D Residual Block for genomic CNNs"""
     def __init__(self, channels, kernel_size=9):
         super().__init__()
         self.conv1 = nn.Conv1d(channels, channels, kernel_size, padding=kernel_size//2)
         self.bn1 = nn.BatchNorm1d(channels)
-        self.conv2 = nn.Conv1d(channels, kernel_size, padding=kernel_size//2)
+        self.conv2 = nn.Conv1d(channels, channels, kernel_size, padding=kernel_size//2)
         self.bn2 = nn.BatchNorm1d(channels)
-        self.relu = nn.ReLU()
         
     def forward(self, x):
         residual = x
-        x = self.relu(self.bn1(self.conv1(x)))
+        x = F.relu(self.bn1(self.conv1(x)))
         x = self.bn2(self.conv2(x))
         x += residual
-        return self.relu(x)
+        return F.relu(x)
 
 class FusionAIBaseline(nn.Module):
     """
     Replication of the FusionAI Deep CNN architecture for 32k window classification.
-    Expects input shape: (Batch, Seq_Len) with integer tokens (0-4).
     """
     def __init__(self, vocab_size=5, embed_dim=4, num_filters=64):
         super().__init__()
@@ -72,7 +91,7 @@ class FusionAIBaseline(nn.Module):
         self.global_pool = nn.AdaptiveMaxPool1d(1)
         self.fc1 = nn.Linear(num_filters, 128)
         self.dropout = nn.Dropout(0.3)
-        self.fc2 = nn.Linear(128, 2) # Binary output (Negative, Positive)
+        self.fc2 = nn.Linear(128, 2) # Binary output
 
     def forward(self, x):
         # x shape: (Batch, Seq_Len)
@@ -81,90 +100,109 @@ class FusionAIBaseline(nn.Module):
         
         x = self.stem(x)
         x = self.res_blocks(x)
-        
         x = self.global_pool(x).squeeze(-1)   # -> (Batch, num_filters)
         
         x = F.relu(self.fc1(x))
         x = self.dropout(x)
         logits = self.fc2(x)
         
-        return {'logits': logits}
+        return logits
 
-# ==============================================================================
-# 3. SMART DATASET & MOCK GENERATOR
-# ==============================================================================
-def generate_mock_data(n=100):
-    """Generates mock integer-encoded DNA sequences to verify pipeline"""
-    data = []
-    for _ in range(n):
-        seq = torch.randint(0, 4, (Config.MAX_LEN,))
-        label = random.choice([0, 1])
-        data.append({'input_ids': seq, 'labels': torch.tensor(label, dtype=torch.long)})
-    return data
+# --- 3. PREPARE DATALOADERS ---
+# Using the dataframes generated by Cell 5 in your main script
+print("📦 Preparing DataLoaders for CNN Baseline...")
+# CNNs are memory efficient, so we can use a larger batch size for faster training
+CNN_BATCH_SIZE = 32 
 
-class MockLoader:
-    def __init__(self, data, batch_size):
-        self.data = data
-        self.batch_size = batch_size
-    def __iter__(self):
-        for i in range(0, len(self.data), self.batch_size):
-            batch = self.data[i:i+self.batch_size]
-            yield {
-                'input_ids': torch.stack([x['input_ids'] for x in batch]),
-                'labels': torch.stack([x['labels'] for x in batch])
-            }
-    def __len__(self):
-        return len(self.data) // self.batch_size
+train_ds_cnn = SimpleDNADataset(train_df['sequence'].tolist(), train_df['label'].tolist(), Config.MAX_LEN)
+val_ds_cnn = SimpleDNADataset(val_df['sequence'].tolist(), val_df['label'].tolist(), Config.MAX_LEN)
+test_ds_cnn = SimpleDNADataset(test_df['sequence'].tolist(), test_df['label'].tolist(), Config.MAX_LEN)
 
-# ==============================================================================
-# 4. TRAINING LOOP
-# ==============================================================================
-def train_fusionai():
-    print("🚀 Initializing FusionAI Baseline (1D-CNN)...")
-    model = FusionAIBaseline().to(Config.DEVICE)
-    optimizer = torch.optim.AdamW(model.parameters(), lr=Config.LR)
-    criterion = nn.CrossEntropyLoss()
-    
-    # Replace these with your actual DataLoader from the FuseLens pipeline
-    train_loader = MockLoader(generate_mock_data(200), Config.BATCH_SIZE)
-    val_loader = MockLoader(generate_mock_data(50), Config.BATCH_SIZE)
-    
-    best_auc = 0.0
-    
-    for epoch in range(Config.EPOCHS):
-        # --- TRAIN ---
-        model.train()
-        train_loss = 0
-        for batch in tqdm(train_loader, desc=f"Epoch {epoch+1} Training"):
-            ids = batch['input_ids'].to(Config.DEVICE)
-            lbls = batch['labels'].to(Config.DEVICE)
-            
-            optimizer.zero_grad()
-            out = model(ids)
-            loss = criterion(out['logits'], lbls)
-            loss.backward()
-            optimizer.step()
-            train_loss += loss.item()
-            
-        # --- VALIDATE ---
-        model.eval()
-        all_preds, all_lbls = [], []
-        with torch.no_grad():
-            for batch in val_loader:
-                ids = batch['input_ids'].to(Config.DEVICE)
-                lbls = batch['labels'].to(Config.DEVICE)
-                out = model(ids)
-                
-                probs = F.softmax(out['logits'], dim=1)[:, 1]
-                all_preds.extend(probs.cpu().numpy())
-                all_lbls.extend(lbls.cpu().numpy())
-                
-        auc = roc_auc_score(all_lbls, all_preds)
-        print(f"Epoch {epoch+1} | Train Loss: {train_loss/len(train_loader):.4f} | Val AUC: {auc:.4f}")
+train_loader_cnn = DataLoader(train_ds_cnn, batch_size=CNN_BATCH_SIZE, shuffle=True)
+val_loader_cnn = DataLoader(val_ds_cnn, batch_size=CNN_BATCH_SIZE, shuffle=False)
+test_loader_cnn = DataLoader(test_ds_cnn, batch_size=CNN_BATCH_SIZE, shuffle=False)
+
+# --- 4. TRAINING LOOP ---
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+cnn_model = FusionAIBaseline().to(device)
+optimizer = AdamW(cnn_model.parameters(), lr=1e-4) # Standard CNN learning rate
+criterion = nn.CrossEntropyLoss()
+
+best_cnn_auc = 0.0
+CNN_EPOCHS = 3
+
+print(f"\n⚙️ Training CNN Baseline for {CNN_EPOCHS} Epochs on {device}...")
+
+for epoch in range(CNN_EPOCHS):
+    # TRAIN
+    cnn_model.train()
+    train_loss = 0
+    for batch in tqdm(train_loader_cnn, desc=f"Epoch {epoch+1} Train"):
+        ids = batch['input_ids'].to(device)
+        lbls = batch['labels'].to(device)
         
-        if auc > best_auc:
-            best_auc = auc
-            torch.save(model.state_dict(), os.path.join(Config.OUTPUT_DIR, "best_fusionai_cnn.pt"))
+        optimizer.zero_grad()
+        logits = cnn_model(ids)
+        loss = criterion(logits, lbls)
+        loss.backward()
+        optimizer.step()
+        train_loss += loss.item()
+        
+    # VALIDATE
+    cnn_model.eval()
+    all_probs, all_lbls = [], []
+    val_loss = 0
+    with torch.no_grad():
+        for batch in val_loader_cnn:
+            ids = batch['input_ids'].to(device)
+            lbls = batch['labels'].to(device)
+            
+            logits = cnn_model(ids)
+            loss = criterion(logits, lbls)
+            val_loss += loss.item()
+            
+            probs = torch.softmax(logits, dim=1)[:, 1]
+            all_probs.extend(probs.cpu().numpy())
+            all_lbls.extend(lbls.cpu().numpy())
+            
+    auc = roc_auc_score(all_lbls, all_probs)
+    print(f"   -> Val Loss: {val_loss/len(val_loader_cnn):.4f} | Val AUC: {auc:.4f}")
+    
+    if auc > best_cnn_auc:
+        best_cnn_auc = auc
+        torch.save(cnn_model.state_dict(), os.path.join(Config.OUTPUT_DIR, "best_fusionai_cnn.pt"))
 
-if __name__ == "__main__":
-    train_fusionai()
+# --- 5. TEST SET EVALUATION ---
+print("\n🧪 Evaluating Best CNN on Blind Test Set...")
+cnn_model.load_state_dict(torch.load(os.path.join(Config.OUTPUT_DIR, "best_fusionai_cnn.pt")))
+cnn_model.eval()
+
+test_probs_cnn, test_lbls_cnn = [], []
+with torch.no_grad():
+    for batch in tqdm(test_loader_cnn, desc="Testing CNN"):
+        ids = batch['input_ids'].to(device)
+        lbls = batch['labels'].to(device)
+        logits = cnn_model(ids)
+        probs = torch.softmax(logits, dim=1)[:, 1]
+        
+        test_probs_cnn.extend(probs.cpu().numpy())
+        test_lbls_cnn.extend(lbls.cpu().numpy())
+
+# Calculate Final Metrics
+test_preds_cnn = (np.array(test_probs_cnn) >= 0.5).astype(int)
+cnn_acc = accuracy_score(test_lbls_cnn, test_preds_cnn)
+cnn_auc = roc_auc_score(test_lbls_cnn, test_probs_cnn)
+cnn_f1 = f1_score(test_lbls_cnn, test_preds_cnn)
+
+print(f"\n📊 FUSION-AI BASELINE RESULTS:")
+print(f"   Accuracy: {cnn_acc:.4f}")
+print(f"   AUC:      {cnn_auc:.4f}")
+print(f"   F1 Score: {cnn_f1:.4f}")
+
+# Save the predictions to compare with FuseLens later
+cnn_results = pd.DataFrame({
+    'True_Label': test_lbls_cnn,
+    'FusionAI_Prob': test_probs_cnn
+})
+cnn_results.to_csv(os.path.join(Config.OUTPUT_DIR, "fusionai_test_predictions.csv"), index=False)
+print("✅ Baseline evaluation complete and saved.")
