@@ -768,7 +768,7 @@ def evaluate_positive_only(model, loader, device, use_amp=False):
     for batch in loader:
         ids = batch["input_ids"].to(device, non_blocking=True)
 
-        with torch.cuda.amp.autocast(enabled=use_amp):
+        with torch.amp.autocast('cuda', enabled=use_amp):
             logits = model(ids)
         probs = torch.softmax(logits, dim=1)[:, 1]
 
@@ -793,7 +793,7 @@ def train_one_epoch(model, loader, optimizer, criterion, device, scaler=None, us
 
         optimizer.zero_grad(set_to_none=True)
 
-        with torch.cuda.amp.autocast(enabled=use_amp):
+        with torch.amp.autocast('cuda', enabled=use_amp):
             logits = model(ids)
             loss = criterion(logits, lbls)
 
@@ -831,7 +831,7 @@ def evaluate_loader(model, loader, criterion, device, use_amp=False):
         ids = batch["input_ids"].to(device, non_blocking=True)
         lbls = batch["labels"].to(device, non_blocking=True)
 
-        with torch.cuda.amp.autocast(enabled=use_amp):
+        with torch.amp.autocast('cuda', enabled=use_amp):
             logits = model(ids)
             loss = criterion(logits, lbls)
 
@@ -927,7 +927,8 @@ optimizer = torch.optim.Adadelta(
     weight_decay=FusionAIBenchmarkConfig.WEIGHT_DECAY,
 )
 
-scaler = torch.cuda.amp.GradScaler(enabled=FusionAIBenchmarkConfig.USE_AMP)
+# FIXED: PyTorch 2.x updated API for GradScaler
+scaler = torch.amp.GradScaler('cuda', enabled=FusionAIBenchmarkConfig.USE_AMP)
 
 print("\n🧠 FusionAI-style model initialized.")
 print(f"   Trainable parameters: {count_trainable_params(fusionai_model):,}")
